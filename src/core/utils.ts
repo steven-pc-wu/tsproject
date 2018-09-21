@@ -31,7 +31,16 @@ export class NodeModuleTester {
 
 }
 
-export class Module {
+interface LabelType{
+  label: string;
+}
+
+interface InterSearchFunc{
+  (srcStr: string, subStr: string): boolean; 
+}
+export class Module implements LabelType{
+  label:string = "";
+  _fullname: string = "wuhaifeng";
   SayHi() {
     console.log("this is module hi");
 
@@ -49,7 +58,65 @@ export class Module {
     console.log(_.dropRightWhile(users, function(o){
       return (o.active != true);
     }));
+
+    let input = [1, 2, 3, 4];
+    let [first, second, ...rest] = input;
+    let o = {
+      a: "foo",
+      b: 12,
+      c: "bar"
+    };
+    let {a, c} = o;
+    a = o.c;
+    console.log("first: ", first, " second: ", second, " rest: ", rest, " a: ", a, " c: ", c);
+    this.name({a: "steven"});
+
+    let myObj = {
+      size: 10,
+      label: "this is steven label"
+    };
+    this.printLabel(myObj);
+    this.testInter();
+    this.testFor();
+    console.log("--------");
   }
+
+  name(params: {a: string, b?: number}) {
+    let {a, b = 1001} = params;
+    console.log("a= ", a, " b: ", b);  
+  }
+
+  printLabel(labObj: LabelType) {
+    console.log(labObj.label)
+  }
+
+  testInter() {
+    let a: number[] = [1, 2, 3];
+    let ro: ReadonlyArray<number> = a;
+    let rw: Array<number> = a;
+    rw.push();
+
+    let mySearch: InterSearchFunc;
+
+    mySearch = function(source: string, subString: string) {
+      let result = source.search(subString);
+      return result > -1;
+    }
+
+  }
+
+  testFor() {
+    console.log("tesıtFor");
+    let array = [1, 'steven', 2];
+    for (const value of array) {
+      console.log(value);
+    }
+  }
+
+  get fullname() : string {
+    return this._fullname;
+  } 
+  
 }
 
 /**

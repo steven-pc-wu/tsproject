@@ -1,5 +1,5 @@
 import {Util as Ul} from './core/utils';
-// import * as Ul from './core/utils'
+import mysql from './common/mysqlTest'
 
 /**
  * main 入口
