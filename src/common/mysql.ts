@@ -9,7 +9,7 @@ export default class ComSql {
     private _port: number = 0;
     private _databaseName: string = "";
     private _log: string = 'ComSql ';
-    private _connect: any = null;
+    private _connect: mdSql.Connection = null;
 
     constructor(host: string, user: string, password: string, port: number, databaseName: string) {
         this._host = host;
@@ -20,6 +20,7 @@ export default class ComSql {
     }
 
     connect(callback: (err: any) => void) {
+        console.log(`${this._log} beg conect`);
         let con = mdSql.createConnection({
             'host': this._host,
             'user': this._user,
@@ -33,17 +34,18 @@ export default class ComSql {
             return;
         }
         this._connect = con;
-        callback(null);
-        // con.connect(function (err) {
-        //     if (err) {
-        //         console.log('connect failed: ', err);
-        //         callback(err);
-        //         return;
-        //     }
 
-        //     callback(null);
-        //     console.log('connect ok');
-        // });
+        con.connect((err) => {
+            if (err) {
+                console.log(this._log, 'connect failed: ', err);
+                callback(err);
+                return;
+            }
+
+            callback(null);
+
+            console.log(`${this._log} connect ${this._connect.threadId} ok`);
+        });
     }
 
     /**
@@ -51,14 +53,18 @@ export default class ComSql {
      * @param tabName {string} tablename
      * @param callback {( err:any, filedNames: string[])=>void}
      */
-    getTabFiledname(tabName: string, callback: (err: any, filedNames?: string[]) => void) {
+    getTabFiledName(tabName: string, callback: (err: any, filedNames: string[]) => void) {
+        console.log(`${this._log} ${this._connect.threadId} beg getTabFiledName`);
+
+        let filedNames: string[] = [];
+
         //par check
         if (!tabName) {
-            callback("errParaTabNameInvalid");
+            callback("errParaTabNameInvalid", filedNames);
             return;
         }
         if (!this._connect) {
-            callback("errNotConnected");
+            callback("errNotConnected", filedNames);
             return;
         }
         let con: mdSql.Connection = this._connect;
@@ -67,20 +73,19 @@ export default class ComSql {
         // let sql = mdSql.format('SELECT * FROM ? LIMIT 1', [tabName]);
         // let sql = mdSql.format(`SELECT * FROM ${tabName}  LIMIT 1`);
         let sql = `SELECT * FROM ${tabName} LIMIT 2`;
-        con.query(sql, function (err, results, fileds) {
+        con.query(sql, function (err: mdSql.MysqlError, results, fileds) {
             if (err) {
-                callback(err);
+                callback(err, filedNames);
                 return;
             }
 
-            let filedNames: string[] = [];
             if (!fileds) {
                 callback(err, filedNames)
                 return;
             }
 
             //遍列所有的fileds，获取对象element中“name”值
-            fileds.forEach(element => {
+            fileds.forEach((element) => {
                 if (!element.hasOwnProperty("name")) {
                     return;
                 }
@@ -89,5 +94,75 @@ export default class ComSql {
 
             callback(err, filedNames);
         });
+    }
+
+    /**
+     * 
+     * @param tabName 
+     * @param filedName 
+     * @param datas 
+     * @param callback 
+     */
+    insertTabData(tabName: string, filedName: string[], datas: any[], callback: (err: any) => void) {
+        let format = "INSERT INTO ?? (??) VALUES ?";
+        let sqlStr = mdSql.format(format, [tabName, filedName, datas]);
+        console.log('insertData sqlStr: ', sqlStr);
+
+        this._connect.query(sqlStr, (err, results, fields) => {
+            if (err) {
+                callback(err);
+                return;
+            }
+
+            callback(null);
+
+            console.log('insertData ok affectedRows: ', results.affectedRows);
+        });
+    }
+
+    /**
+     * 
+     * @param tabName 
+     * @param callback 
+     */
+    queryTabData(tabName: string, callback: (err: any, datas: any) => void) {
+        let format = "SELECT * FROM ??";
+        let sqlStr = mdSql.format(format, [tabName]);
+        this._connect.query(sqlStr, (err, results, fileds) => {
+
+            let datas: any = null;
+            if (err) {
+                callback(err, datas);
+                return;
+            }
+
+            if (!results) {
+                callback(null, datas);
+                return;
+            }
+
+            datas = JSON.stringify(results);
+            datas = JSON.parse(datas);
+            console.log(`query tab: ${tabName} ok `);
+            callback(null, datas);
+        });
+    }
+
+
+
+    /**
+     * 
+     */
+    end() {
+        if (this._connect) {
+            this._connect.end((err) => {
+                if (err) {
+                    console.log(`end conect error: ${err}`);
+                    return;
+                }
+
+                console.log(`end conect ${this._connect.threadId} ok`);
+            });
+        }
     }
 }
