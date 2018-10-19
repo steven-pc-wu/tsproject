@@ -1,6 +1,7 @@
-import {Util as Ul} from './core/utils';
+import { Util as Ul } from './core/utils';
 import mysql from './common/mysqlTest'
 import TestMySql from './common/mysqlTest';
+import TestExcel from './common/exceltest';
 
 /**
  * main 入口
@@ -8,19 +9,12 @@ import TestMySql from './common/mysqlTest';
  * 测试
  */
 function main() {
-    // const tester = new Ul.NodeModuleTester("s1", 1);
 
-    // console.log(Ul.NodeModuleTester.STATIC_VAR);
-    // console.log(Ul.NodeModuleTester.testPath());
-    // console.log("hello steven112289456123");
-    // tester.sayHello();
+    // let mysqlTest = new TestMySql();
+    // mysqlTest.testFunc();
 
-    // let mod = new Ul.Module();
-    // mod.SayHi();
-
-    // Ul.Singleton.getInstance().sayHello();
-    let mysqlTest = new TestMySql();
-    mysqlTest.testFunc();
+    let testExcel = new TestExcel();
+    testExcel.test();
 }
 
 main();
