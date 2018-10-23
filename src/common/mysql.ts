@@ -148,6 +148,32 @@ export default class ComSql {
         });
     }
 
+    //执行sql语句的命令
+    _executeSqlSeq(sqlStr: string, callback: (err) => void) {
+        this._connect.query(sqlStr, (err, results, fileds) => {
+
+            let datas: any = null;
+            if (err) {
+                console.log(`${this._log} _executeSql: ${sqlStr} failed`);
+                callback(err);
+                return;
+            }
+
+            console.log(`${this._log} _executeSqlSeq: ${sqlStr} ok`);
+            callback(null);
+        });
+    }
+
+    /**
+     *  清空表格中的数据
+     * @param tableName 
+     * @param callback 
+     */
+    clearTableDatas(tableName: string, callback: (err: any) => void) {
+        let formatSql = 'TRUNCATE TABLE ??';
+        let sqlStr: string = mdSql.format(formatSql, [tableName]);
+        this._executeSqlSeq(sqlStr, callback);
+    }
 
 
     /**
