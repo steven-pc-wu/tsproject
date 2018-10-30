@@ -80,23 +80,121 @@ function selfTest() {
     let test = new TestExcel();
     test.test1();
 }
+
+const wait = (ms) => new Promise((res) => { setTimeout(res, ms) });
+
+const startAsync = async callback => {
+    console.log('111');
+    await wait(1000);
+    console.log('2222');
+    callback('Hello');
+    await wait(1000);
+    callback('And Welcome');
+    await wait(1000);
+    callback('To Async Await Using TypeScript');
+};
+
+function timeout(ms: number) {
+    return new Promise((resolve, reject) => {
+        console.log('promise');
+        setTimeout(resolve, ms, 'done');
+    });
+}
+
+function testProimse() {
+    console.log('11111');
+    timeout(100).then((value) => {
+        console.log(value);
+    });
+    console.log('22222');
+}
+
+var resolveAfter2Seconds = function () {
+    console.log("starting slow promise");
+    return new Promise(resolve => {
+        setTimeout(function () {
+            resolve(20);
+            console.log("slow promise is done");
+        }, 2000);
+    });
+};
+
+var resolveAfter1Second = function () {
+    console.log("starting fast promise");
+    return new Promise(resolve => {
+        setTimeout(function () {
+            resolve(10);
+            console.log("fast promise is done");
+        }, 1000);
+    });
+};
+
+var sequentialStart = async function () {
+    console.log('==SEQUENTIAL START==');
+
+    // 如果 await 操作符后的表达式不是一个 Promise 对象, 则它会被转换成一个 resolved 状态的 Promise 对象
+    console.log('sequentialStart 111');
+    const slow = await resolveAfter2Seconds();
+    console.log('sequentialStart 222');
+    const fast = await resolveAfter1Second();
+    console.log('slow ret: ', slow);
+    console.log('fast ret: ', fast);
+}
+
+var concurrentStart = async function () {
+    console.log('==CONCURRENT START with await==');
+    const slow = resolveAfter2Seconds(); // 立即启动计时器
+    const fast = resolveAfter1Second();
+
+    console.log(await slow);
+    console.log(await fast); // 等待 slow 完成, fast 也已经完成。
+}
+
+var stillSerial = function () {
+    console.log('==CONCURRENT START with Promise.all==');
+    Promise.all([resolveAfter2Seconds(), resolveAfter1Second()]).then(([slow, fast]) => {
+        console.log(slow);
+        console.log(fast);
+    });
+}
+
+var parallel = function () {
+    console.log('==PARALLEL with Promise.then==');
+    resolveAfter2Seconds().then((message) => console.log(message)); // in this case could be simply written as console.log(resolveAfter2Seconds());
+    resolveAfter1Second().then((message) => console.log(message));
+}
+
 /**
  * main 入口
  * 
  * 测试
  */
 function main() {
-
+    sequentialStart(); // sequentialStart 总共花了 2+1 秒
+    // 等到 sequentialStart() 完成
+    setTimeout(concurrentStart, 4000); // concurrentStart 总共花了 2 秒
+    // 等到 setTimeout(concurrentStart, 4000) 完成
+    setTimeout(stillSerial, 7000); // stillSerial 总共花了 2 秒
+    // 等到 setTimeout(stillSerial, 7000) 完成
+    setTimeout(parallel, 10000); // 真正的并行运行
     // selfTest();
 
-    test((error) => {
-        if (error) {
-            console.log('test failed err: ', error);
-            return;
-        }
+    // test((error) => {
+    //     if (error) {
+    //         console.log('test failed err: ', error);
+    //         return;
+    //     }
 
-        console.log('test ok');
-    });
+    //     console.log('test ok');
+    // });
+
+    // startAsync(text => console.log(text));
+    // let utilTest = new Ul.Module();
+    // utilTest.testPromise();
+
+    // testProimse();
 }
+
+
 
 main();
