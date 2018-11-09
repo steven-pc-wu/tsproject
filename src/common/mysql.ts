@@ -20,7 +20,7 @@ export default class ComSql {
     }
 
     connect(callback: (err: any) => void) {
-        console.log(`${this._log} beg conect`);
+        // console.log(`${this._log} beg conect`);
         let con = mdSql.createConnection({
             'host': this._host,
             'user': this._user,
@@ -29,7 +29,7 @@ export default class ComSql {
             'database': this._databaseName
         });
         if (!con) {
-            console.log(this._log, 'createConnection failed');
+            // console.log(this._log, 'createConnection failed');
             callback(null);
             return;
         }
@@ -37,14 +37,46 @@ export default class ComSql {
 
         con.connect((err) => {
             if (err) {
-                console.log(this._log, 'connect failed: ', err);
+                // console.log(this._log, 'connect failed: ', err);
                 callback(err);
                 return;
             }
 
             callback(null);
 
-            console.log(`${this._log} connect ${this._connect.threadId} ok`);
+            // console.log(`${this._log} connect ${this._connect.threadId} ok`);
+        });
+    }
+
+    //查询表格是否存在并且有对应的域名
+    queryTabIsExist(tabName: string, callback: (err, bIsExist?: boolean) => void) {
+        if (!this._connect) {
+            callback("errNotConnected");
+            return;
+        }
+        let con: mdSql.Connection = this._connect;
+
+        //查寻数据获取表格的相关列
+        // let sql = mdSql.format('SELECT * FROM ? LIMIT 1', [tabName]);
+        // let sql = mdSql.format(`SELECT * FROM ${tabName}  LIMIT 1`);
+        let sql = `SELECT * FROM ${tabName} LIMIT 1`;
+        con.query(sql, function (err: mdSql.MysqlError, results, fileds) {
+            if (err) {
+                if (err.errno === 1146) {
+                    callback(null, false);
+                    return;
+                }
+
+                callback(err);
+                return;
+            }
+
+            if (fileds.length > 0) {
+                callback(null, true);
+                return;
+            }
+
+            callback(null, false);
         });
     }
 
@@ -54,7 +86,7 @@ export default class ComSql {
      * @param callback {( err:any, filedNames: string[])=>void}
      */
     getTabFiledName(tabName: string, callback: (err: any, filedNames: string[]) => void) {
-        console.log(`${this._log} ${this._connect.threadId} beg getTabFiledName`);
+        // console.log(`${this._log} ${this._connect.threadId} beg getTabFiledName`);
 
         let filedNames: string[] = [];
 
@@ -72,7 +104,7 @@ export default class ComSql {
         //查寻数据获取表格的相关列
         // let sql = mdSql.format('SELECT * FROM ? LIMIT 1', [tabName]);
         // let sql = mdSql.format(`SELECT * FROM ${tabName}  LIMIT 1`);
-        let sql = `SELECT * FROM ${tabName} LIMIT 2`;
+        let sql = `SELECT * FROM ${tabName} LIMIT 1`;
         con.query(sql, function (err: mdSql.MysqlError, results, fileds) {
             if (err) {
                 callback(err, filedNames);
@@ -106,7 +138,7 @@ export default class ComSql {
     insertTabData(tabName: string, filedName: string[], datas: any[], callback: (err: any) => void) {
         let format = "INSERT INTO ?? (??) VALUES ?";
         let sqlStr = mdSql.format(format, [tabName, filedName, datas]);
-        console.log('insertData sqlStr: ', sqlStr);
+        // console.log('insertData sqlStr: ', sqlStr);
 
         this._connect.query(sqlStr, (err, results, fields) => {
             if (err) {
@@ -116,7 +148,7 @@ export default class ComSql {
 
             callback(null);
 
-            console.log('insertData ok affectedRows: ', results.affectedRows);
+            // console.log('insertData ok affectedRows: ', results.affectedRows);
         });
     }
 
@@ -143,7 +175,7 @@ export default class ComSql {
 
             datas = JSON.stringify(results);
             datas = JSON.parse(datas);
-            console.log(`query tab: ${tabName} ok `);
+            // console.log(`query tab: ${tabName} ok `);
             callback(null, datas);
         });
     }
@@ -154,12 +186,12 @@ export default class ComSql {
 
             let datas: any = null;
             if (err) {
-                console.log(`${this._log} _executeSql: ${sqlStr} failed`);
+                // console.log(`${this._log} _executeSql: ${sqlStr} failed`);
                 callback(err);
                 return;
             }
 
-            console.log(`${this._log} _executeSqlSeq: ${sqlStr} ok`);
+            // console.log(`${this._log} _executeSqlSeq: ${sqlStr} ok`);
             callback(null);
         });
     }
@@ -183,11 +215,11 @@ export default class ComSql {
         if (this._connect) {
             this._connect.end((err) => {
                 if (err) {
-                    console.log(`end conect error: ${err}`);
+                    // console.log(`end conect error: ${err}`);
                     return;
                 }
 
-                console.log(`end conect ${this._connect.threadId} ok`);
+                // console.log(`end conect ${this._connect.threadId} ok`);
             });
         }
     }

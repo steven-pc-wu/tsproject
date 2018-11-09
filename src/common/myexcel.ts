@@ -20,20 +20,20 @@ export default class ComExcel {
                 row1.eachCell((cell, collNum) => {
                     filedsName.push(this._getCelValue(cell));
                 });
-                console.log(`table get tabe fileds ok`);
+                // console.log(`table get tabe fileds ok`);
 
                 callback(null, filedsName);
             }).catch((reson) => {
                 callback(reson, []);
-                console.log('worksheet get tabe fileds failed ');
+                // console.log('worksheet get tabe fileds failed ');
             });
 
-        console.log('worksheet get datas 222');
+        // console.log('worksheet get datas 222');
     }
 
     //获取表格中指定列中的数据
     getTableDesFiledDatas(descFileds: string[], callback: (err: any, datas: any[]) => void) {
-        console.log('worksheet getTableDesFiledDatas descFileds: ', descFileds);
+        // console.log('worksheet getTableDesFiledDatas descFileds: ', descFileds);
 
         let workbook = new Excel.Workbook();
         workbook.xlsx.readFile(this._excelFileName)
@@ -59,7 +59,7 @@ export default class ComExcel {
                         //获取列的名字并查看列的名字是否在要求的表格中
                         let colName: string = filedsName[colNumber - 1];
                         if (descFileds.indexOf(colName) === -1) {
-                            console.log(`getTableDesFiledDatas colNum: ${colNumber} colName: ${colName} not in`);
+                            // console.log(`getTableDesFiledDatas colNum: ${colNumber} colName: ${colName} not in`);
                             return;
                         }
 
@@ -70,13 +70,13 @@ export default class ComExcel {
                 });
 
                 callback(null, allRowdatas);
-                console.log("worksheet get datas ok");
+                // console.log("worksheet get datas ok");
             }).catch((reson) => {
                 callback(reson, []);
-                console.log('worksheet get datas failed ')
+                // console.log('worksheet get datas failed ')
             });
 
-        console.log('worksheet get datas 222');
+        // console.log('worksheet get datas 222');
     }
 
     //get table all data
@@ -102,13 +102,13 @@ export default class ComExcel {
                 });
 
                 callback(null, allRowdatas);
-                console.log("worksheet get datas ok");
+                // console.log("worksheet get datas ok");
             }).catch((reson) => {
                 callback(reson, []);
-                console.log('worksheet get datas failed ')
+                // console.log('worksheet get datas failed ')
             });
 
-        console.log('worksheet get datas 222');
+        // console.log('worksheet get datas 222');
     }
 
     _getCelValue(cell: Excel.Cell): string {

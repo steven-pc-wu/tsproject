@@ -1,79 +1,88 @@
-import { Util as Ul } from './core/utils';
+import { Util as Ul, Util } from './core/utils';
 import ComSql from './common/mysql'
 import ComExcel from './common/myexcel';
 import TestMySql from './common/mysqlTest';
 import TestExcel from './common/exceltest';
+import PmTestExcelDb from './program/testexceldb';
+import { dirname } from 'path';
 
-function test(callback: (err: any) => void) {
-    let excelName: string = 'commonCfg.xlsx';
-    let tableName: string = 'commonCfg';
+function test(dirName: string, callback: (err: any) => void) {
+    // let excelName: string = 'commonCfg.xlsx';
+    // let tableName: string = 'commonCfg';
 
-    let _host: string = '192.168.20.248';
-    let _user: string = 'root';
-    let _password: string = '123456';
-    let _port: number = 3306;
-    let _dataBase: string = 'whf_test';
-    let testSql = new ComSql(_host, _user, _password, _port, _dataBase);
-    testSql.connect(function (err) {
-        if (err) {
-            console.log(err);
-            callback(err);
-            return;
-        }
+    // let _host: string = '192.168.20.248';
+    // let _user: string = 'root';
+    // let _password: string = '123456';
+    // let _port: number = 3306;
+    // let _dataBase: string = 'whf_test';
+    // let testSql = new ComSql(_host, _user, _password, _port, _dataBase);
+    // testSql.connect(function (err) {
+    //     if (err) {
+    //         console.log(err);
+    //         callback(err);
+    //         return;
+    //     }
 
-        //清空表格中的数据
-        testSql.clearTableDatas(tableName, (err) => {
-            if (err) {
-                console.log('main clearTableDatas failed error: ', err);
-                callback(err);
-                return;
-            }
-        })
-
-        //获取sql中指定表格中filedName
-        testSql.getTabFiledName(tableName, (err, filedName) => {
-            if (err) {
-                callback(err);
-                return;
-            }
-
-            console.log('main getTabFiledName filedName: ', filedName);
-
-            //根据sql中filedName 获取excel 中相关列中数据
-            let testExcel = new ComExcel(excelName);
-            testExcel.getTableDesFiledDatas(filedName, (err, datas) => {
-                if (err) {
-                    console.log('get table datas error: ', err);
-                    callback(err);
-                    return;
-                }
-
-                console.log('getTable datas ok: ', datas.toString());
+    //     let UtilDir = Util.UtilFileDir.getInstance();
+    //     UtilDir.getDirFiles(dirName, (err, files) => {
 
 
-                testSql.insertTabData(tableName, filedName, datas, (err) => {
-                    if (err) {
-                        console.log('main insert datas failed err: ', err);
-                        callback(err);
-                        return;
-                    }
+    //         //清空表格中的数据
+    //         testSql.clearTableDatas(tableName, (err) => {
+    //             if (err) {
+    //                 console.log('main clearTableDatas failed error: ', err);
+    //                 callback(err);
+    //                 return;
+    //             }
+    //         })
 
-                    console.log('main insert datas ok');
-                });
+    //         //获取sql中指定表格中filedName
+    //         testSql.getTabFiledName(tableName, (err, filedName) => {
+    //             if (err) {
+    //                 callback(err);
+    //                 return;
+    //             }
 
-                testSql.queryTabData(tableName, (err, datas) => {
-                    if (err) {
-                        console.log('main query table datas failed err: ', err);
-                        callback(err);
-                        return;
-                    }
+    //             console.log('main getTabFiledName filedName: ', filedName);
 
-                    console.log('main query tabel datas ok datas: ', datas);
-                });
-            })
-            //把excel中获取到的相关列中数据插入到sql中
-        })
-    });
+    //             //根据sql中filedName 获取excel 中相关列中数据
+    //             let testExcel = new ComExcel(excelName);
+    //             testExcel.getTableDesFiledDatas(filedName, (err, datas) => {
+    //                 if (err) {
+    //                     console.log('get table datas error: ', err);
+    //                     callback(err);
+    //                     return;
+    //                 }
+
+    //                 console.log('getTable datas ok: ', datas.toString());
+
+
+    //                 testSql.insertTabData(tableName, filedName, datas, (err) => {
+    //                     if (err) {
+    //                         console.log('main insert datas failed err: ', err);
+    //                         callback(err);
+    //                         return;
+    //                     }
+
+    //                     console.log('main insert datas ok');
+    //                 });
+
+    //                 testSql.queryTabData(tableName, (err, datas) => {
+    //                     if (err) {
+    //                         console.log('main query table datas failed err: ', err);
+    //                         callback(err);
+    //                         return;
+    //                     }
+
+    //                     console.log('main query tabel datas ok datas: ', datas);
+    //                 });
+    //             })
+    //             //把excel中获取到的相关列中数据插入到sql中
+    //         })
+    //     });
+
+
+    // });
 }
 
 function selfTest() {
@@ -81,88 +90,9 @@ function selfTest() {
     test.test1();
 }
 
-const wait = (ms) => new Promise((res) => { setTimeout(res, ms) });
+interface AsyncResultCallback<T> { (result?: T): void; }
 
-const startAsync = async callback => {
-    console.log('111');
-    await wait(1000);
-    console.log('2222');
-    callback('Hello');
-    await wait(1000);
-    callback('And Welcome');
-    await wait(1000);
-    callback('To Async Await Using TypeScript');
-};
-
-function timeout(ms: number) {
-    return new Promise((resolve, reject) => {
-        console.log('promise');
-        setTimeout(resolve, ms, 'done');
-    });
-}
-
-function testProimse() {
-    console.log('11111');
-    timeout(100).then((value) => {
-        console.log(value);
-    });
-    console.log('22222');
-}
-
-var resolveAfter2Seconds = function () {
-    console.log("starting slow promise");
-    return new Promise(resolve => {
-        setTimeout(function () {
-            resolve(20);
-            console.log("slow promise is done");
-        }, 2000);
-    });
-};
-
-var resolveAfter1Second = function () {
-    console.log("starting fast promise");
-    return new Promise(resolve => {
-        setTimeout(function () {
-            resolve(10);
-            console.log("fast promise is done");
-        }, 1000);
-    });
-};
-
-var sequentialStart = async function () {
-    console.log('==SEQUENTIAL START==');
-
-    // 如果 await 操作符后的表达式不是一个 Promise 对象, 则它会被转换成一个 resolved 状态的 Promise 对象
-    console.log('sequentialStart 111');
-    const slow = await resolveAfter2Seconds();
-    console.log('sequentialStart 222');
-    const fast = await resolveAfter1Second();
-    console.log('slow ret: ', slow);
-    console.log('fast ret: ', fast);
-}
-
-var concurrentStart = async function () {
-    console.log('==CONCURRENT START with await==');
-    const slow = resolveAfter2Seconds(); // 立即启动计时器
-    const fast = resolveAfter1Second();
-
-    console.log(await slow);
-    console.log(await fast); // 等待 slow 完成, fast 也已经完成。
-}
-
-var stillSerial = function () {
-    console.log('==CONCURRENT START with Promise.all==');
-    Promise.all([resolveAfter2Seconds(), resolveAfter1Second()]).then(([slow, fast]) => {
-        console.log(slow);
-        console.log(fast);
-    });
-}
-
-var parallel = function () {
-    console.log('==PARALLEL with Promise.then==');
-    resolveAfter2Seconds().then((message) => console.log(message)); // in this case could be simply written as console.log(resolveAfter2Seconds());
-    resolveAfter1Second().then((message) => console.log(message));
-}
+interface AsyncResultIterator<T, R> { (item: T, callback: AsyncResultCallback<R>): void; }
 
 /**
  * main 入口
@@ -170,16 +100,9 @@ var parallel = function () {
  * 测试
  */
 function main() {
-    sequentialStart(); // sequentialStart 总共花了 2+1 秒
-    // 等到 sequentialStart() 完成
-    setTimeout(concurrentStart, 4000); // concurrentStart 总共花了 2 秒
-    // 等到 setTimeout(concurrentStart, 4000) 完成
-    setTimeout(stillSerial, 7000); // stillSerial 总共花了 2 秒
-    // 等到 setTimeout(stillSerial, 7000) 完成
-    setTimeout(parallel, 10000); // 真正的并行运行
-    // selfTest();
 
-    // test((error) => {
+    // let dirName = '/Users/wuhaifeng/develop/svn/duorou/trunk/策划文档/配置';
+    // test(dirName, (error) => {
     //     if (error) {
     //         console.log('test failed err: ', error);
     //         return;
@@ -188,11 +111,12 @@ function main() {
     //     console.log('test ok');
     // });
 
-    // startAsync(text => console.log(text));
-    // let utilTest = new Ul.Module();
-    // utilTest.testPromise();
 
-    // testProimse();
+    // let utilTest = new Ul.Module();
+    // utilTest.testAsyncx();
+    let pmTest = new PmTestExcelDb();
+    pmTest.working();
+
 }
 
 
