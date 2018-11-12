@@ -4,6 +4,7 @@ import { Util as Ul } from '../core/utils';
 import async from 'async';
 import { dirname } from 'path';
 import { fstat } from 'fs';
+import { stringify } from 'querystring';
 let UlFile = Ul.UtilFileDir;
 
 export default class testExcelDb {
@@ -53,7 +54,7 @@ export default class testExcelDb {
         });
     }
 
-    init(callbk: (err, files?: string[]) => void) {
+    _workingInit(callbk) {
         let dirName: string = '/Users/wuhaifeng/develop/svn/duorou/trunk/策划文档/配置';
         this._dirName = dirName;
 
@@ -143,13 +144,73 @@ export default class testExcelDb {
         });
         return;
     }
+
+    //获取sql中指定表格中filedName
+    private _handleItemGetSqlTabFileds(tabName: string, callback) {
+        //1: 获取sql中指定表格中filedName
+        this._sqlLib.getTabFiledName(tabName, (err, results) => {
+            if (err) {
+                callback(`${__filename} getTabFileName error: ${err}`);
+                return;
+            }
+
+            // console.log(`get fileds: ${results}`);
+            callback(null, results);
+        });
+    }
+
+    //根据sql中filedName 获取excel 中相关列中数据 
+    private _handleItemGetExcelDatasBySqlFileds(fileName: string, fileds: string[], callback) {
+        //2: 根据sql中filedName 获取excel 中相关列中数据
+        if (!fileds) {
+            callback(`${__filename} get fileds empty`);
+            return;
+        }
+
+        let locExcel = new excel(fileName);
+        if (!locExcel) {
+            callback(`new excel failed`);
+            return;
+        }
+
+        locExcel.getTableDesFiledDatas(fileds, (err, datas) => {
+            if (err) {
+                callback(`${__filename} get file: ${fileName} ${err}`);
+                return;
+            }
+
+            // console.log(`get file: ${fileName} datas: ${JSON.stringify(datas)}`);
+            callback(null, fileds, datas);
+        });
+    }
+
+    // 根据获取到的excel数据更新数据库(更新之前需要清空数据中该表格中的数据)
+    private _handleItemUpdtSqlTableData(tabName: string, filedNames: string[], datas: any[], callback) {
+        //3： 根据获取到的excel数据更新数据库(更新之前需要清空数据中该表格中的数据)
+        this._sqlLib.clearTableDatas(tabName, (err) => {
+            if (err) {
+                console.log(`clear ${tabName} failed error: ${err}`);
+            }
+        });
+
+        this._sqlLib.insertTabData(tabName, filedNames, datas, (err) => {
+
+            if (err) {
+                console.log(`table: ${tabName} filedName: ${filedNames} error: ${err}`);
+                return;
+            }
+
+            console.log(`table: ${tabName} filedName: ${filedNames} updt ok`);
+
+            callback(null);
+        });
+    }
     //获取指定表格中的信息更新到数据库中
     private _handleUpdtDbTableDataFromExcel(fileName: string, callback) {
         if (!fileName) {
             callback('para error');
             return;
         }
-
 
         let tabName = this._getTableNameFromFileName(fileName);
         if (!tabName) {
@@ -158,92 +219,14 @@ export default class testExcelDb {
         }
         console.log(`begin to updt tableName: ${tabName}`);
 
-        let _isCurDone: boolean = false;
-
         /* 1: 获取sql中指定表格中filedName  2: 根据sql中filedName 获取excel 中相关列中数据  3： 根据获取到的excel数据更新数据库(更新之前需要清空数据中该表格中的数据) */
         async.waterfall([
-            (callback) => {
-                //查询表格是否存在表格不存在就直接
-                this._sqlLib.queryTabIsExist(tabName, (err, bIsExist) => {
-                    if (err || !bIsExist) {
-                        callback(null);
-                        _isCurDone = true;
-                        return;
-                    }
-
-                    callback(null);
-                })
-            },
-            (callback) => {
-                if (_isCurDone) {
-                    callback(null);
-                    return;
-                }
-                //1: 获取sql中指定表格中filedName
-                this._sqlLib.getTabFiledName(tabName, (err, results) => {
-                    if (err) {
-                        callback(`${__filename} getTabFileName error: ${err}`);
-                        return;
-                    }
-
-                    // console.log(`get fileds: ${results}`);
-                    callback(null, results);
-                });
-            },
-            (fileds: string[], callback) => {
-                if (_isCurDone) {
-                    callback(null);
-                    return;
-                }
-                //2: 根据sql中filedName 获取excel 中相关列中数据
-                if (!fileds) {
-                    callback(`${__filename} get fileds empty`);
-                    return;
-                }
-
-                let locExcel = new excel(fileName);
-                if (!locExcel) {
-                    callback(`new excel failed`);
-                    return;
-                }
-
-                locExcel.getTableDesFiledDatas(fileds, (err, datas) => {
-                    if (err) {
-                        callback(`${__filename} get file: ${fileName} ${err}`);
-                        return;
-                    }
-
-                    // console.log(`get file: ${fileName} datas: ${JSON.stringify(datas)}`);
-                    callback(null, fileds, datas);
-                });
-            },
-            (filedName, datas, callback) => {
-                if (_isCurDone) {
-                    callback(null);
-                    return;
-                }
-                //3： 根据获取到的excel数据更新数据库(更新之前需要清空数据中该表格中的数据)
-                this._sqlLib.clearTableDatas(tabName, (err) => {
-                    if (err) {
-                        console.log(`clear ${tabName} failed error: ${err}`);
-                    }
-                });
-
-                this._sqlLib.insertTabData(tabName, filedName, datas, (err) => {
-
-                    if (err) {
-                        console.log(`table: ${tabName} filedName: ${filedName} error: ${err}`);
-                        return;
-                    }
-
-                    console.log(`table: ${tabName} filedName: ${filedName} updt ok`);
-
-                    callback(null);
-                });
-            }
+            this._handleItemGetSqlTabFileds.bind(this, tabName), //1: 获取sql中指定表格中filedName
+            this._handleItemGetExcelDatasBySqlFileds.bind(this, fileName), //2: 根据sql中filedName 获取excel 中相关列中数据
+            this._handleItemUpdtSqlTableData.bind(this, tabName),
         ], (err, results) => {
 
-            if (err && !_isCurDone) {
+            if (err) {
                 callback(err);
                 return;
             }
@@ -256,7 +239,7 @@ export default class testExcelDb {
     wrokingClearAll() {
         async.waterfall([
             (callback) => {
-                this.init(callback);
+                this._workingInit(callback);
             },
 
             (dirFiles: string[], callback) => {
@@ -290,33 +273,56 @@ export default class testExcelDb {
         });
     }
 
-    working() {
-        async.waterfall([
-            (callback) => {
-                this.init(callback);
-            },
+    _workingFilterTableExistInSql(dirFiles: string[], callback) {
+        // console.log(`_filterTableExistInSql initDirs: ${JSON.stringify(dirFiles)}`);
 
-            (dirFiles: string[], callback) => {
-                if (dirFiles.length <= 0) {
-                    callback("files empty");
-                    return;
+        async.filter(dirFiles, (item, callback) => {
+            let tableName = this._getTableNameFromFileName(item);
+            this._sqlLib.queryTabIsExist(tableName, (err, bIsExist) => {
+                if (!err && bIsExist) {
+                    callback(null, true);
+                } else {
+                    callback(null, false);
                 }
-
-                console.log(`dirFiles: ${JSON.stringify(dirFiles)} begin to updt`);
-
-                //whf-dbg 
-                dirFiles = [`${this._dirName}/flowerpotCfg.xlsx`];
-                //更新表格中所有的数据，更新完毕以后结束
-                async.map(dirFiles, this._handleUpdtDbTableDataFromExcel.bind(this), (err, results) => {
-                    if (err) {
-                        callback(err);
-                        return;
-                    }
-
-                    console.log('updt allfile ok');
-                    callback(null);
-                });
+            });
+        }, (error, lastFIles) => {
+            if (error) {
+                return callback(error);
             }
+
+            // console.log(`_filterTableExistInSql lastFIles: ${JSON.stringify(lastFIles)}`);
+            callback(null, lastFIles);
+        });
+    }
+
+    _workingUpdtAllFilesToSql(dirFiles: string[], callback) {
+        if (dirFiles.length <= 0) {
+            callback("files empty");
+            return;
+        }
+
+        console.log(`dirFiles: ${JSON.stringify(dirFiles)} begin to updt`);
+
+        //whf-dbg 
+        // dirFiles = [`${this._dirName}/CollectionCfg.xlsx`];
+        //更新表格中所有的数据，更新完毕以后结束
+        async.each(dirFiles, this._handleUpdtDbTableDataFromExcel.bind(this), (err) => {
+            if (err) {
+                callback(err);
+                return;
+            }
+
+            console.log('updt allfile ok');
+            callback(null);
+        });
+    }
+
+    working() {
+
+        async.waterfall([
+            this._workingInit.bind(this),
+            this._workingFilterTableExistInSql.bind(this),
+            this._workingUpdtAllFilesToSql.bind(this),
         ], (err, results) => {
             if (err) {
                 console.log(`working error: ${err}`);
