@@ -3,6 +3,7 @@ import sql from '../common/mysql';
 import { Util as Ul } from '../core/utils';
 import async from 'async';
 import { dirname } from 'path';
+import { fstat } from 'fs';
 let UlFile = Ul.UtilFileDir;
 
 export default class testExcelDb {
@@ -304,7 +305,7 @@ export default class testExcelDb {
                 console.log(`dirFiles: ${JSON.stringify(dirFiles)} begin to updt`);
 
                 //whf-dbg 
-                // dirFiles = [`${this._dirName}/commonCfg.xlsx`, `${this._dirName}/dayNightEffect.xlsx`, `${this._dirName}/CollectionCfg.xlsx`];
+                dirFiles = [`${this._dirName}/flowerpotCfg.xlsx`];
                 //更新表格中所有的数据，更新完毕以后结束
                 async.map(dirFiles, this._handleUpdtDbTableDataFromExcel.bind(this), (err, results) => {
                     if (err) {

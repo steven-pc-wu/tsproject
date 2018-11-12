@@ -138,7 +138,7 @@ export default class ComSql {
     insertTabData(tabName: string, filedName: string[], datas: any[], callback: (err: any) => void) {
         let format = "INSERT INTO ?? (??) VALUES ?";
         let sqlStr = mdSql.format(format, [tabName, filedName, datas]);
-        // console.log('insertData sqlStr: ', sqlStr);
+        console.log('insertData sqlStr: ', sqlStr);
 
         this._connect.query(sqlStr, (err, results, fields) => {
             if (err) {

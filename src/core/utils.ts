@@ -183,6 +183,253 @@ export module Util {
     asyncHandle(item: string, callback: (err, results: string[]) => void) {
       callback(null, [item.toUpperCase()])
     }
+
+    testAsyncX1() {
+      console.log('202222');
+      var
+        directoryAbove300;
+
+      function directoryListing(initialPath, callback) {
+        fs.readdir(DirName, (err, names) => {
+          if (err) {
+            callback(err);
+            return;
+          }
+
+          async.map(names, function (fileName, callback) {
+            callback(null, `${DirName}/${fileName}`);
+          }, function (err, results) {
+            if (err) {
+              callback(err);
+              return;
+            }
+
+            callback(null, results);
+          });
+        });
+      }
+
+      function arrayFsStat(fileNames, callback) {
+        async.map(
+          fileNames,
+          fs.stat,
+          function (err, stats) {
+            if (err) { callback(err); } else {
+              callback(err, fileNames, stats);
+            }
+          }
+        );
+      }
+
+      function arrayFsReadFile(fileNames, callback) {
+        async.map(
+          fileNames,
+          function (aFileName: string, readCallback) {
+            fs.readFile(aFileName, 'utf8', readCallback);
+          },
+          function (err, contents) {
+            if (err) { callback(err); } else {
+              callback(err, contents);
+            }
+          }
+        );
+      }
+
+      function mergeFilenameAndStat(fileNames, stats) {
+        return stats.map(function (aStatObj, index) {
+          aStatObj.fileName = fileNames[index];
+          return aStatObj;
+        });
+      }
+
+      function above300(combinedFilenamesAndStats) {
+        return combinedFilenamesAndStats
+          .filter(function (aStatObj) {
+            return aStatObj.size >= 3;
+          });
+      }
+
+      function justFilenames(combinedFilenamesAndStats) {
+        return combinedFilenamesAndStats
+          .map(function (aCombinedFileNameAndStatObj) {
+            return aCombinedFileNameAndStatObj.fileName;
+          })
+      }
+
+      //These functions are synchronous 
+      function justFile(Stats) {
+        console.log(`justFile Stats ${Stats.length}`);
+        return Stats.filter(function (statObj: fs.Stats) {
+          return statObj.isFile();
+        });
+
+      }
+
+      function justNormalFile(fileNames) {
+        return fileNames.filter(function (fileName) {
+          return path.extname(fileName).endsWith('txt');
+        });
+      }
+
+      //async.seq will produce a new function that you can use over and over
+      directoryAbove300 = async.seq(
+        directoryListing,
+        arrayFsStat,
+        async.asyncify(mergeFilenameAndStat),
+        async.asyncify(justFile),
+        async.asyncify(above300),
+        async.asyncify(justFilenames),
+        async.asyncify(justNormalFile),
+        arrayFsReadFile
+      );
+
+      let DirName: string = '/Users/wuhaifeng/develop/code/testdir';
+      directoryAbove300(
+        DirName,
+        function (err, fileNames, stats, contents) {
+          if (err) {
+            console.error(err);
+          } else {
+            console.log(fileNames);
+          }
+        }
+      );
+    }
+    testAsyncX3() {
+      //Our anonymous refactored into named functions 
+      let DirName: string = '/Users/wuhaifeng/develop/code/testdir';
+      function directoryListing(callback) {
+        fs.readdir(DirName, (err, names) => {
+          if (err) {
+            callback(err);
+            return;
+          }
+
+          async.map(names, function (fileName, callback) {
+            callback(null, `${DirName}/${fileName}`);
+          }, function (err, results) {
+            if (err) {
+              callback(err);
+              return;
+            }
+
+            callback(null, results);
+          });
+        });
+      }
+      function arrayFsStat(fileNames, callback) {
+        console.log(`arrayFsStat fileNames: ${JSON.stringify(fileNames)}`);
+        async.map(
+          fileNames,
+          fs.stat,
+          function (err, stats) {
+            if (err) { callback(err); } else {
+              callback(err, fileNames, stats);
+            }
+          }
+        );
+      }
+
+      function arrayFsReadFile(fileNames, callback) {
+        console.log(`arrayFsReadFile ${JSON.stringify(fileNames)}`);
+        async.map(
+          fileNames,
+          function (aFileName: string, readCallback) {
+            fs.readFile(aFileName, 'utf8', readCallback);
+          },
+          function (err, contents) {
+            if (err) { callback(err); } else {
+              callback(err, contents);
+            }
+          }
+        );
+      }
+
+
+      function mergeFilenameAndStat(fileNames, stats) {
+
+        return stats.map(function (aStatObj, index) {
+          aStatObj.fileName = fileNames[index];
+          return aStatObj;
+        });
+      }
+
+      function above300(combinedFilenamesAndStats) {
+        return combinedFilenamesAndStats
+          .filter(function (aStatObj) {
+            return aStatObj.size >= 1;
+          });
+      }
+
+      //These functions are synchronous 
+      function justFile(Stats) {
+        console.log(`justFile Stats ${Stats.length}`);
+        return Stats.filter(function (statObj: fs.Stats) {
+          return statObj.isFile();
+        });
+
+      }
+
+      function justFilenames(combinedFilenamesAndStats) {
+        console.log(`justFilenames Stats ${combinedFilenamesAndStats.length}`);
+        return combinedFilenamesAndStats
+          .map(function (aCombinedFileNameAndStatObj) {
+            return aCombinedFileNameAndStatObj.fileName;
+          });
+      }
+
+      function justNormalFile(fileNames) {
+        return fileNames.filter(function (fileName) {
+          return path.extname(fileName).endsWith('txt');
+        });
+      }
+
+      async.waterfall([
+        directoryListing,
+        arrayFsStat,
+        async.asyncify(mergeFilenameAndStat),   //asyncify wraps synchronous functions in a err-first callback
+        async.asyncify(above300),
+        async.asyncify(justFile),
+        async.asyncify(justFilenames),
+        async.asyncify(justNormalFile),
+        arrayFsReadFile
+      ],
+        function (err, contents) {
+          if (err) {
+            console.error(err);
+          } else {
+            console.log(contents);
+          }
+        }
+      );
+    }
+    testAsyncX2() {
+      var
+        startTime = new Date().getTime(),   //the unix timestamp in milliseconds
+        runCount = 0;
+
+      async.until(
+        function () {
+          //return true if 4 milliseconds have elapsed, otherwise false (and continue running the script)
+          return new Date().getTime() > (startTime + 5);
+        },
+        function (callback) {
+          runCount += 1;
+          fs.writeFile(
+            'timed-file-' + runCount + '.txt',    //the new file name
+            'This is file number ' + runCount,  //the contents of the new file
+            callback
+          );
+        },
+        function (err) {
+          if (err) {
+            console.error(err);
+          } else {
+            console.log('Wrote files.');
+          }
+        }
+      );
+    }
     testAsyncx() {
       let strs = ['111', '11', 'c'];
 
@@ -403,6 +650,7 @@ export module Util {
     }
 
     public getDirFiles(dirName: string, callbk: (err, fileNames?: string[]) => void) {
+
       //参数有效性检查
       if (!dirName) {
         callbk(`para dirName: ${dirName} empty`);
