@@ -101,21 +101,11 @@ interface AsyncResultIterator<T, R> { (item: T, callback: AsyncResultCallback<R>
  */
 function main() {
 
-    // let dirName = '/Users/wuhaifeng/develop/svn/duorou/trunk/策划文档/配置';
-    // test(dirName, (error) => {
-    //     if (error) {
-    //         console.log('test failed err: ', error);
-    //         return;
-    //     }
-
-    //     console.log('test ok');
-    // });
-
-
-    // let utilTest = new Ul.Module();
-    // utilTest.testAsyncX1();
-    let pmTest = new PmTestExcelDb();
-    pmTest.working();
+    let utilTest = new Ul.Module();
+    // utilTest.testTermal();
+    utilTest.testWs();
+    // let pmTest = new PmTestExcelDb();
+    // pmTest.working();
 
 }
 

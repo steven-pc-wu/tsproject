@@ -2,6 +2,11 @@ import * as path from 'path';                     // 测试能否正常使用 No
 import * as _ from 'lodash';
 import * as async from 'async';
 import * as fs from 'fs';
+import { exec } from 'child_process';
+import * as foox from 'ws';
+import foo = require("ws");
+// var exec = require('child_process').exec;
+
 
 export module Util {
   export const UTIL_VALUE: number = 123;
@@ -115,10 +120,14 @@ export module Util {
     testFor() {
       this.testFx("123");
       console.log("tesıtFor");
-      let array = [1, 'steven', 2];
-      for (const value of array) {
-        console.log(value);
-      }
+      let array = [1, 'steven', 2, 'wfeewf', 1, 'steven', 2, 'wfeewf', 1, 'steven', 2, 'wfeewf', 1, 'steven', 2, 'wfeewf', 1, 'steven', 2, 'wfeewf'];
+      // for (const value of array) {
+      //   console.log(value);
+      // }
+      array.forEach((elem) => {
+        console.log(elem);
+      })
+      console.log('1111111');
     }
 
     get fullname(): string {
@@ -430,6 +439,162 @@ export module Util {
         }
       );
     }
+
+    testTermal() {
+      // var exec = require('child_process').exec;
+      var dirName = '/Users/wuhaifeng/develop/svn/test/test';
+      let cmdStr = `svn diff -r 999:1001:999:1002 --summarize ${dirName}`;
+
+      var iconv = require('iconv-lite');
+      var encoding = 'GBK';
+
+      // let cmdStr = `ls -al ${dirName}`;
+      exec(cmdStr, function (err, stdout, stderr) {
+        if (err) {
+          console.log('ret error:' + stderr);
+        } else {
+          var newData = iconv.decode(new Buffer(stdout), encoding);//编码转换
+          console.log(newData);
+
+          // let re = /^[AMU]\s+(.+[.]xlsx)/gm;
+          // let rets = re.exec(orStr);
+          // while (rets && rets[1]) {
+          //   console.log(rets[1]);
+          //   rets = re.exec(orStr);
+          // }
+        }
+      });
+
+    }
+
+    testWs() {
+
+      // let _port: number = 3001;
+      // let _server = new WebSocket.Server({ port: _port });
+      // _server.on('connection', (ws, req) => {
+      //   console.log(`server address info ${JSON.stringify(_server.address)}`);
+
+      //   ws.on('message', (msg) => {
+      //     console.log(`testWs receive msg: ${msg}`);
+      //     _server.clients.forEach((client) => {
+      //       client.send(msg);
+      //     });
+      //   })
+      // });
+
+
+      const ws = new foo('ws://121.40.165.18:8800');
+
+      ws.on('message', (msg) => {
+        console.log(`RecvMsg: ${JSON.stringify(msg)}`);
+      });
+
+      ws.on('open', function open() {
+
+        ws.send("111");
+      });
+
+
+    }
+    testRegExp() {
+      let orStr = "M       /Users/wuhaifeng/develop/svn/test/test/config/plotCfg.xlsx\nM       /Users/wuhaifeng/develop/svn/test/test/config/randeventAnimal.xlsx";
+      console.log(orStr);
+
+      let re = /^[AMU]\s+(.+[.]xlsx)/gm;
+      let rets = re.exec(orStr);
+      while (rets && rets[1]) {
+        console.log(rets[1]);
+        rets = re.exec(orStr);
+      }
+
+      // var myString = "Hello 1 word. Sentence number 2.";
+      // var splits = myString.split(/(\d)/);
+
+      // console.log(splits);
+      // var names = "Harry Trump ; Fred Barney;; Helen Rigby ; Bill Abel ;Chris Hand ";
+
+      // console.log(names);
+
+      // var re = /\s*;\s*/;
+      // var nameList = names.split(re, 2);
+
+      // console.log(nameList);
+      // function splitString(stringToSplit, separator) {
+      //   var arrayOfStrings = stringToSplit.split(separator);
+
+      //   console.log('The original string is: "' + stringToSplit + '"');
+      //   console.log('The separator is: "' + separator + '"');
+      //   console.log("The array has " + arrayOfStrings.length + " elements: ");
+
+      //   for (var i = 0; i < arrayOfStrings.length; i++)
+      //     console.log(arrayOfStrings[i] + "/ ");
+      // }
+
+      // var tempestString = "Oh  brave new world that has such people in it.";
+      // var monthString = "Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec";
+
+      // var space = " ";
+      // var comma = ",";
+
+      // splitString(tempestString, space);
+      // // splitString(tempestString);
+      // splitString(monthString, comma);
+
+      // var re = /(\w+)\s(\w+)/;
+      // var str = "John Smith";
+      // var newstr = str.replace(re, "$2");
+      // // Smith, John
+      // console.log(newstr);
+
+      // Match "quick brown" followed by "jumps", ignoring characters in between
+      // Remember "brown" and "jumps"
+      // Ignore case
+      // var re = /quick\s(brown).+?(jump)/ig;
+      // var result = re.exec('The Quick Brown Fox Jumps Over The Lazy Dog');
+      // console.log(result);
+      // var regex1 = RegExp('foo*', 'g');
+      // var str1 = 'table football, foosball';
+      // var array1;
+
+      // while ((array1 = regex1.exec(str1)) !== null) {
+      //   console.log(`Found ${array1[0]}. Next starts at ${regex1.lastIndex}.`);
+      //   // expected output: "Found foo. Next starts at 9."
+      //   // expected output: "Found foo. Next starts at 19."
+      // }
+
+
+      // var myRe = /d(b+)d/g;
+      // var myArray = myRe.exec("cdbbdbdbdsbz");
+      // console.log(`${JSON.stringify(myArray)}`);
+
+      // var re = /^[AM]\s+([\w.]+)/mg;
+      // var re = /a*/;
+      // var str = "aaaaaaa   dcfdf   sdfd   ";
+      // // var str = "M    abc.txt  \nA    wefef.txt";
+      // var myArray = str.match(re);
+
+      // var s = "Hello i am steven!";
+      // var regex1 = /am\s(\w+)/;
+      // let array = s.match(regex1);
+      // console.log(array);
+
+      // var text = "First line\nsecond line";
+      // var regex = /(\S+) line\n?/y;
+
+      // var match = regex.exec(text);
+      // console.log(match[1]);  // prints "First"
+      // console.log(regex.lastIndex); // prints 11
+
+      // var match2 = regex.exec(text);
+      // console.log(match2[1]); // prints "Second"
+      // console.log(regex.lastIndex); // prints "22"
+
+      // var match3 = regex.exec(text);
+      // console.log(match3 === null); // prints "true"
+
+      // var url = "http://xxx.domain.com";
+      // console.log(/[^.]+/.exec(url)[0].substr(7)); // prints "xxx"
+    }
     testAsyncx() {
       let strs = ['111', '11', 'c'];
 
@@ -500,36 +665,36 @@ export module Util {
           async.map(['/Users/wuhaifeng/develop/svn/shizi', '/Users/wuhaifeng/develop/code/ts/project'], fs.readdir,
             function (err, results) {
               if (err) {
-                // console.log(`error: ${err}`);
+                // console.log(`error: ${ err }`);
                 callback(err);
                 return;
               }
               callback(null, results);
               console.log('1111');
-              // console.log(`results: ${JSON.stringify(results)}`);
+              // console.log(`results: ${ JSON.stringify(results) } `);
             });
         },
         function (arg1, callback) {
           async.map(['/Users/wuhaifeng/develop/svn/shizi', '/Users/wuhaifeng/develop/code/ts/project'], fs.stat,
             function (err, results) {
               if (err) {
-                // console.log(`error: ${err}`);
+                // console.log(`error: ${ err } `);
                 callback(err);
                 return;
               }
               console.log('2222');
               callback(null, results);
-              // console.log(`results: ${JSON.stringify(results)}`);
+              // console.log(`results: ${ JSON.stringify(results) } `);
             });
         }
       ], function (err, results) {
         if (err) {
-          console.log(`error: ${err}`);
+          console.log(`error: ${err} `);
           return;
         }
 
         console.log('3333333');
-        console.log(`results: ${JSON.stringify(results)}`);
+        console.log(`results: ${JSON.stringify(results)} `);
       });
       console.log('xxxxxx');
 

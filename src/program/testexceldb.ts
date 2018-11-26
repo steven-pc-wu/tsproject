@@ -236,7 +236,7 @@ export default class testExcelDb {
         return;
     }
 
-    wrokingClearAll() {
+    private wrokingClearAll() {
         async.waterfall([
             (callback) => {
                 this._workingInit(callback);
@@ -273,7 +273,7 @@ export default class testExcelDb {
         });
     }
 
-    _workingFilterTableExistInSql(dirFiles: string[], callback) {
+    private _workingFilterTableExistInSql(dirFiles: string[], callback) {
         // console.log(`_filterTableExistInSql initDirs: ${JSON.stringify(dirFiles)}`);
 
         async.filter(dirFiles, (item, callback) => {
@@ -295,7 +295,7 @@ export default class testExcelDb {
         });
     }
 
-    _workingUpdtAllFilesToSql(dirFiles: string[], callback) {
+    private _workingUpdtAllFilesToSql(dirFiles: string[], callback) {
         if (dirFiles.length <= 0) {
             callback("files empty");
             return;
